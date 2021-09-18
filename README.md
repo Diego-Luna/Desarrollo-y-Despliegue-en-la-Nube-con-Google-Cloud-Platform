@@ -45,32 +45,99 @@ Por lo general, los y las SRE no se involucra en la construcción de SLA, porque
 Sin embargo, SRE se involucra para ayudar a evitar desencadenar las consecuencias de los SLO omitidos. También pueden ayudar a definir los SLI: obviamente, debe haber una forma objetiva de medir los SLO en el acuerdo, o surgirán desacuerdos.
 
 ## Error Budget
+
 El Porcentaje de error aceptable es la diferencia entre el 100% y nuestro objetivo (SLO) que tenemos como oportunidad para hacer cambios/mejoras/mantenimiento.
 
 El Porcentaje de error aceptable nos permite:
-* Aumentar la velocidad de desarrollo.
-* Incrementar mejoras.
-* Inovar en nuestros productos.
 
-__Beneficios del porcentaje de error aceptable__
+- Aumentar la velocidad de desarrollo.
+- Incrementar mejoras.
+- Inovar en nuestros productos.
 
-* Incentivos comunes para desarrolladores y SREs: Encuentra el balance adecuado entre innovación y reliability.
+**Beneficios del porcentaje de error aceptable**
 
-* Los equipos de desarrollo pueden gestionar el riesgo por su cuenta: Ellos deciden cómo utilizar el porcentaje de error aceptable.
+- Incentivos comunes para desarrolladores y SREs: Encuentra el balance adecuado entre innovación y reliability.
 
-* Los objetivos de reliability poco realistas no son atractivos: Estos objetivos disminuyen la velocidad de la innovación.
+- Los equipos de desarrollo pueden gestionar el riesgo por su cuenta: Ellos deciden cómo utilizar el porcentaje de error aceptable.
 
-* Responsabilidad compartida por uptime del sistema: Los fallos de la infraestructura utilizan el porcentaje de error aceptable de los desarrolladores.
+- Los objetivos de reliability poco realistas no son atractivos: Estos objetivos disminuyen la velocidad de la innovación.
 
-__Consecuencias del porcentaje de error aceptable__
+- Responsabilidad compartida por uptime del sistema: Los fallos de la infraestructura utilizan el porcentaje de error aceptable de los desarrolladores.
+
+**Consecuencias del porcentaje de error aceptable**
 ✅ Cuando hay porcentaje de error aceptable: Priorizar la velocidad
 
-* Lanzamiento de nuevas funciones.
-* Cambios previstos en el sistema.
-* Fallos inevitables en el hardware, las redes, etc.
-* Experimentos arriesgados.
+- Lanzamiento de nuevas funciones.
+- Cambios previstos en el sistema.
+- Fallos inevitables en el hardware, las redes, etc.
+- Experimentos arriesgados.
 
-* ❌ Cuando se agota el porcentaje de error aceptable: Priorizar la estabilidad
-* Ralentizar o detener los lanzamientos de nuevas funciones.
-* Priorizar items del postmortem.
-* Automatizar los procesos de implementación.
+- ❌ Cuando se agota el porcentaje de error aceptable: Priorizar la estabilidad
+- Ralentizar o detener los lanzamientos de nuevas funciones.
+- Priorizar items del postmortem.
+- Automatizar los procesos de implementación.
+
+## Construcción de Imágenes de Contenedor
+
+Preparando los archivos fuente
+
+```
+quickstart.sh
+```
+
+Para hacer ejecutable el script `chmod +x quickstart.sh`
+
+```
+echo "Hola mundo!"
+```
+
+`Dockerfile`
+
+```
+FROM alpine
+COPY quickstart.sh /
+CMD ["/quickstart.sh"]
+```
+
+Crear un repo de Docker en Artifact Registry
+
+```
+gcloud artifacts repositories create quickstart-docker-repo --repository-format=docker \
+--location=us-central1 --description="Docker repository"
+```
+
+Para verificar que el repo se creo:
+
+```
+gcloud artifacts repositories list
+```
+
+Construyendo la imagen usando Docker
+
+El `project-id` se puede obtener con el comando `gcloud config ger-value project`
+
+```
+gcloud builds submit --tag us-central1-docker.pkg.dev/project-id/quickstart-docker-repo/quickstart-image:tag1
+```
+
+Construyendo usando un build config file ```cloudbuild.yaml```
+El ```$PROJECT_ID``` se puede obtener con el comando ```gcloud config ger-value project```
+
+```
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/quickstart-image:tag1', '.' ]
+images:
+- 'us-central1-docker.pkg.dev/$PROJECT_ID/quickstart-docker-repo/quickstart-image:tag1'
+```
+
+Para ejecutar el ```cloudbuild.yaml``` usamos:
+
+```
+gcloud builds submit --config cloudbuild.yaml
+```
+
+En Cloud Build bajo Build history podemos ver los archivos que se han compilado con el comando anterior.
+
+
+
