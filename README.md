@@ -141,3 +141,4 @@ En Cloud Build bajo Build history podemos ver los archivos que se han compilado 
 
 
 
+![ci cd en GCP](./ci_cd_en_GCP.png)
